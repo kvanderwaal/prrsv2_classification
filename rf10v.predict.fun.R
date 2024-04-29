@@ -8,7 +8,7 @@ library(caret)
 library(randomForest)
 
 #load("model.rf10v.new.lin.Rdata")
-load("model.t26.Rdata")
+#load("~/Library/CloudStorage/Box-Box/PRRS nomen/Lineage RF/Lineage RF - 07.2023/model.rf10v.new.lin.11.2023.Rdata")
 rep.row<-function(x,n){
   matrix(rep(x,each=n),nrow=n)
 }
@@ -68,27 +68,33 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
      
     
    d.rf <- genind2df(d.c)
-   d.rf <- d.rf[-(1:5),]#remove dummies
+   #ensure read as factor
+  
+   
    
    names(d.rf) <- paste("p",names(d.rf),sep=".")
    
    #remove columns that aren't used in training
    d.rf <- d.rf[,colnames(d.rf) %in% names(m$trainingData)]
    
-   modes <- as.character(sapply(m$trainingData,calc_mode))
-   modes <- modes[-1]
+   modes <- as.character((sapply(m$trainingData[2:ncol(m$trainingData)],calc_mode)))
+   names(modes) <- names(m$trainingData[2:ncol(m$trainingData)])
+  # modes <- modes[-1]
    
-   for(f in 1:ncol(d.rf))(
+   #THIS LOOPS IS TURNIGN THING INTO CHARACTERS.  MNOVE LAPPLY TO BELOW?
+   for(f in 1:ncol(d.rf)){
+     #levs <- levels(d.rf[,f])
      d.rf[,f] <- ifelse(is.na(d.rf[,f])==T,modes[f],d.rf[,f])
-   )
+     d.rf[,f]
+   }
      
+   d.rf[,1:ncol(d.rf)] <- lapply(d.rf[,1:ncol(d.rf)],factor)
+   lapply(d.rf[,1:ncol(d.rf)],levels)
+   
+   d.rf <- d.rf[-(1:5),]#remove dummies
    #convert NA to mode#convert NA calc_modeto mode
    #d.rf[,1:ncol(d.rf)] <- sapply(d.rf[,1:ncol(d.rf)],na.to.mode) 
    
-  
-   
-   #ensure read as factor
-   d.rf[,1:ncol(d.rf)] <- lapply(d.rf[,1:ncol(d.rf)],factor)
   
    # not needed any more!! 2024-01-11
    # na.to.x <- function(vec){
@@ -101,18 +107,22 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
      nam <- names(m$trainingData)[f]
      #find levels in new data that are not in training 2024-01-11
      drop <- levels(d.rf[,nam])[levels(d.rf[,nam]) %in% levels(m$trainingData[,nam])==F]
-     if(length(drop)>0){
-     d.rf[,nam] <- droplevels(d.rf[,nam],exclude=drop)
-          }
-     levs <- levels(d.rf[,nam]) #get bases for new data 2024-01-11 
-     mode <- calc_mode(d.rf[,nam])#get position modes
-     #apply modified calc_mode function to fill NAs
-     d.rf[,nam] <- ifelse(is.na(d.rf[,nam])==T ,mode,d.rf[,nam])
-     d.rf[,nam]<- factor(d.rf[,nam],labels=levs)
-     
-     d.rf[,nam] <- factor(d.rf[,nam],levels=levels(m$trainingData[,nam]))
-  
+     for(i in 1:nrow(d.rf)) { 
+        if(d.rf[i,nam] %in% drop){
+         d.rf[i,nam] <- ifelse(d.rf[i,nam] %in% drop,modes[nam],d.rf[i,nam])
+         #d.rf[,nam] <- droplevels(d.rf[,nam],exclude=drop)
+        }
      }
+       levs <- levels(d.rf[,nam]) #get bases for new data 2024-01-11 
+       mode <- (calc_mode(m$trainingData[,nam]))#get position modes
+       #apply modified calc_mode function to fill NAs
+       #d.rf[,nam] <- (d.rf[,nam])
+   #    #d.rf[,nam] <- ifelse(is.na(d.rf[,nam])==T ,mode,d.rf[,nam])
+       #d.rf[,nam]<- factor(d.rf[,nam],labels=levs)
+       
+       d.rf[,nam] <- factor(d.rf[,nam],levels=levels(m$trainingData[,nam]))
+    }
+    
      
    #replace NA (produced by dropping elvels with missforest 
    #Not needed any more 11/01/2024
@@ -133,7 +143,7 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
     assign.sec <- apply(probs,1,get.alts)
     assign.third <- apply(probs,1,get.alts,alt=3)
     
-    p.out <- data.frame(id=(rownames(d.rf)),
+    p.out <- data.frame(strain=(rownames(d.rf)),
                         assign.top=p,
                         prob.top=round(apply(probs,1,max),3),
                         assign.2 = assign.sec[2,],
@@ -143,6 +153,6 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
                         )
     p.out$assign.2 <- ifelse(p.out$prob.2==0,NA,p.out$assign.2)
     p.out$assign.3 <- ifelse(p.out$prob.3==0,NA,p.out$assign.3)
-    p.out$assign.final <- ifelse(p.out$prob.top<0.25,"undetermined",as.character(p.out$assign.top))
+    p.out$assign.final <- ifelse(p.out$prob.top<.25,"undetermined",as.character(p.out$assign.top))
     return(p.out)
 }

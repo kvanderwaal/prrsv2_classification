@@ -24,6 +24,15 @@ variant**. In this system, sequences belonging the same variant
 typically have an average genetic distance of \~2.5% on the ORF5 gene,
 but can be as high as \~5%.
 
+<div class="figure" style="text-align: center">
+
+<img src="infographicPRRSV2.1.jpg" alt="Caption"  />
+<p class="caption">
+Caption
+</p>
+
+</div>
+
 A machine learning algorithm (based on random forest) has been devoloped
 to **assign new sequences** to the appropriate variant ID. On this page,
 we maintain an **up-to-date** version of the assignment algorithm, which
@@ -105,8 +114,9 @@ head(out)
 ```
 
 The output file contains 8 columns. The “assign.final” column is the
-assigned variant ID for each sequence. Col.1 (strain): This is ID of
-each sequence.  
+assigned variant ID for each sequence.
+
+Col.1 (strain): This is ID of each sequence.  
 Col.2 (assign.top): the most probable variant to which the sequence
 belongs Col.3 (prob.top): The probability of the sequence belonging to
 the most probable (top) variant Col.4 (assign.2): The second-most

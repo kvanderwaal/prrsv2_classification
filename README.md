@@ -62,6 +62,10 @@ using a pre-trained random forest model (“model.Rdata”) and functions
 from the”rf.10v.predict.fun.R” available on this page. You should
 **not** open or modify any text in the rf.10v.predict.fun.R file.
 
+Here, we use the Github URL to load in the latest vesion of the model.
+Loading the model straight from Github, as done here, ensures that the
+most up-to-date version of the model is being used.
+
 ``` r
 #instal required packages
 #install.packages("adegenet","caret","randomForest")

@@ -133,3 +133,26 @@ the final assignment, Those with a prob.top of \<.25 are labeled
 undetermined
 
 ## Assigning sequences in Python
+### Requirements
+
+* Linux or macOS
+* [Python](https://www.python.org/) 3 or later and following libraries:
+    * [Pandas](https://pandas.pydata.org/)
+    * [Numpy](https://numpy.org/install/)
+    * [Biopython](https://biopython.org/)
+    * [SKOPS](https://github.com/skops-dev/skops)
+
+### Usage
+In terminal, run the python script ("finalPRRSVclass.py") together with a pre-trained random forest model ("randomCV10RF.skops") and a query multiple sequence alignment that needed to be assigned into variants using the following command.
+
+```bash
+usage: python3 finalPRRSVclass.py [-h] -s SEQALI -m randomCV10RF.skops -o OUT
+
+options:
+  -h, --help    Show this help message and exit
+  -s, --seqali  PRRSV-2 multiple sequence alignment with length of 603 nt in FASTA format
+  -m, --model   Pre-trained random forest model
+  -o, --out     Name or full path of classification report in .csv format
+```
+
+The output file is similar to the report assigned by R.

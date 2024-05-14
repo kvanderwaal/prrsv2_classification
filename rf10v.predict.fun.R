@@ -6,6 +6,7 @@ library(seqinr)
 library(adegenet)
 library(caret)
 library(randomForest)
+library(Biostrings)
 
 #load("model.rf10v.new.lin.Rdata")
 load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.Rdata"))
@@ -133,8 +134,8 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
   # Exclude sequences that were aligned from the original al.new and then add the aligned sequences
   seq_to_exclude <- which(nchar(al.new$seq) != 603)
   nam_to_exclude <- al.new[["nam"]][seq_to_exclude]
-  al.new.nam <- al.new$nam[al.new$nam %nin% nam_to_exclude]
-  al.new.seq <- al.new$seq[al.new$nam %nin% nam_to_exclude]
+  al.new.nam <- al.new$nam[!(al.new$nam %in% nam_to_exclude)]
+  al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
   al.new.sub <- as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
   
   al.new <- as.alignment(nb=length(c(al.new.nam,aligned_trim_seq[["nam"]])),
@@ -144,8 +145,8 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
   # Exclude and print names of non-conforming seqeuences
   seq_to_exclude <- which(nchar(al.new$seq) != 603)
   nam_to_exclude <- al.new[["nam"]][seq_to_exclude]
-  al.new.nam <- al.new$nam[al.new$nam %nin% nam_to_exclude]
-  al.new.seq <- al.new$seq[al.new$nam %nin% nam_to_exclude]
+  al.new.nam <- al.new$nam[!(al.new$nam %in% nam_to_exclude)]
+  al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
   al.new <- as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
   
   #add dummy dable to al.new so that it ahas same column structure

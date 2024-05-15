@@ -83,71 +83,73 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
   
   # Initialize an empty list to store aligned sequences
   aligned_sequences_list <- list()
+  if(length(long_names)>0){
+    for (i in long_names) {
+      #print(i)
+      # Remove gaps from the sequence
+      aligned_seq <- remove_non_nucleotides(al.new$seq[[i]])
+      
+      # Convert the sequence to a DNAString object
+      al.new.1 <- DNAString(aligned_seq)
+      
+      # Define the substitution matrix
+      mat <- nucleotideSubstitutionMatrix(match = 1, mismatch = -3, baseOnly = TRUE)
+      
+      # Perform pairwise alignment
+      localAlign <- pairwiseAlignment(reference_sequence, al.new.1, substitutionMatrix = mat,
+                                      gapOpening = 25, gapExtension = 15, type = "global-local")
+      
+      # Extract the aligned sequence
+      aligned_seq <- as.character(aligned(localAlign@subject))
+      
+      # if greater than 603, need to remove the insertion
+      if(nchar(aligned_seq)>603){
+        insert <- as.data.frame(indel(localAlign)@deletion[[1]])
+        insert <- insert[order(-insert$start),]
+        for(j in 1:nrow(insert)){
+          insert.j <- seq(insert$start,insert$end,by=1)
+          aligned_seq <- paste(unlist(strsplit(aligned_seq,""))[-insert.j], collapse = "")
+        }
+        }
+      
+      # Convert the aligned sequence to a DNAStringSet object
+      aligned_seq_set <- DNAStringSet(aligned_seq)
+      names(aligned_seq_set) <- al.new$nam[i]  # Set the name of the sequence
+      
+      # Save the aligned sequences to a list or an appropriate structure
+      aligned_sequences_list[[i]] <- aligned_seq_set
+      
+    }
+    compiled_aligned_sequences <- do.call(c, aligned_sequences_list)
+    
+    # Save the compiled aligned sequences to a single FASTA file
+    temp_dir <- tempdir()  # Create a temporary directory
+    fasta_file_path <- file.path(temp_dir, "compiled_aligned_sequences.fasta")  # Define the path for the FASTA file
+    compiled_aligned_sequences.1 <- unlist(DNAStringSetList(compiled_aligned_sequences))
+    writeXStringSet(compiled_aligned_sequences.1, file = fasta_file_path, format = "fasta")
+    
+    # Read the compiled aligned sequences back into an alignment object
+   aligned_trim_seq <- read.alignment(file = fasta_file_path, format = "fasta")
+    
+    # Exclude sequences that were aligned from the original al.new and then add the aligned sequences
+    seq_to_exclude <- which(nchar(al.new$seq) != 603)
+    nam_to_exclude <- al.new[["nam"]][seq_to_exclude]
+    al.new.nam <- al.new$nam[!(al.new$nam %in% nam_to_exclude)]
+    al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
+    al.new.sub <- as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
+    
+    al.new <- as.alignment(nb=length(c(al.new.nam,aligned_trim_seq[["nam"]])),
+                             nam=c(al.new.nam,aligned_trim_seq[["nam"]]),
+                             seq=c(al.new.seq,aligned_trim_seq$seq))  # Add the aligned sequences to the original al.new
+    
+    # Exclude and print names of non-conforming seqeuences
+    seq_to_exclude <- which(nchar(al.new$seq) != 603)
+    nam_to_exclude <- al.new[["nam"]][seq_to_exclude]
+    al.new.nam <- al.new$nam[!(al.new$nam %in% nam_to_exclude)]
+    al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
+    al.new <- as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
+    }
   
-  for (i in long_names) {
-    #print(i)
-    # Remove gaps from the sequence
-    aligned_seq <- remove_non_nucleotides(al.new$seq[[i]])
-    
-    # Convert the sequence to a DNAString object
-    al.new.1 <- DNAString(aligned_seq)
-    
-    # Define the substitution matrix
-    mat <- nucleotideSubstitutionMatrix(match = 1, mismatch = -3, baseOnly = TRUE)
-    
-    # Perform pairwise alignment
-    localAlign <- pairwiseAlignment(reference_sequence, al.new.1, substitutionMatrix = mat,
-                                    gapOpening = 25, gapExtension = 15, type = "global-local")
-    
-    # Extract the aligned sequence
-    aligned_seq <- as.character(aligned(localAlign@subject))
-    
-    # if greater than 603, need to remove the insertion
-    if(nchar(aligned_seq)>603){
-      insert <- as.data.frame(indel(localAlign)@deletion[[1]])
-      insert <- insert[order(-insert$start),]
-      for(j in 1:nrow(insert)){
-        insert.j <- seq(insert$start,insert$end,by=1)
-        aligned_seq <- paste(unlist(strsplit(aligned_seq,""))[-insert.j], collapse = "")
-      }
-      }
-    
-    # Convert the aligned sequence to a DNAStringSet object
-    aligned_seq_set <- DNAStringSet(aligned_seq)
-    names(aligned_seq_set) <- al.new$nam[i]  # Set the name of the sequence
-    
-    # Save the aligned sequences to a list or an appropriate structure
-    aligned_sequences_list[[i]] <- aligned_seq_set
-    
-  }
-  compiled_aligned_sequences <- do.call(c, aligned_sequences_list)
-  
-  # Save the compiled aligned sequences to a single FASTA file
-  temp_dir <- tempdir()  # Create a temporary directory
-  fasta_file_path <- file.path(temp_dir, "compiled_aligned_sequences.fasta")  # Define the path for the FASTA file
-  compiled_aligned_sequences.1 <- unlist(DNAStringSetList(compiled_aligned_sequences))
-  writeXStringSet(compiled_aligned_sequences.1, file = fasta_file_path, format = "fasta")
-  
-  # Read the compiled aligned sequences back into an alignment object
-  aligned_trim_seq <- read.alignment(file = fasta_file_path, format = "fasta")
-  
-  # Exclude sequences that were aligned from the original al.new and then add the aligned sequences
-  seq_to_exclude <- which(nchar(al.new$seq) != 603)
-  nam_to_exclude <- al.new[["nam"]][seq_to_exclude]
-  al.new.nam <- al.new$nam[!(al.new$nam %in% nam_to_exclude)]
-  al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
-  al.new.sub <- as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
-  
-  al.new <- as.alignment(nb=length(c(al.new.nam,aligned_trim_seq[["nam"]])),
-                           nam=c(al.new.nam,aligned_trim_seq[["nam"]]),
-                           seq=c(al.new.seq,aligned_trim_seq$seq))  # Add the aligned sequences to the original al.new
-  
-  # Exclude and print names of non-conforming seqeuences
-  seq_to_exclude <- which(nchar(al.new$seq) != 603)
-  nam_to_exclude <- al.new[["nam"]][seq_to_exclude]
-  al.new.nam <- al.new$nam[!(al.new$nam %in% nam_to_exclude)]
-  al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
-  al.new <- as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
   
   #add dummy dable to al.new so that it ahas same column structure
   align.dummy.new <- seqinr::as.alignment(nb=(al.new$nb)+nrow(dummy.seqs),

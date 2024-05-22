@@ -2,16 +2,19 @@ import pandas as pd
 import numpy as np
 from Bio import SeqIO
 import skops.io as sio
+from io import BytesIO
+import requests
 import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Estimating PRRSV-2 phylogenetic variant using random forest')
     parser.add_argument('-s', '--seqali', type=str, required=True, help="PRRSV-2 multiple sequence alignment with length of 603 nt")
-    parser.add_argument('-m', '--model', type=str, required=True, help="Trained random forest model")
     parser.add_argument('-o', '--out', type=argparse.FileType('w'), required=True, help="Name or full path of classification report in .csv format")
     args = parser.parse_args()
 
-    model = sio.load(args.model, trusted=True)
+    url0 = 'https://github.com/kvanderwaal/prrsv2_classification/raw/main/randomCV10RF.skops?download='
+    url1 = BytesIO(requests.get(url0).content)
+    model = sio.load(url1, trusted=True)
 
     with open(args.seqali) as fp:
       records = [{'name': str(record.description),

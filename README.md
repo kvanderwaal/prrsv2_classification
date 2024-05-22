@@ -144,7 +144,7 @@ undetermined
     * [Requests](https://requests.readthedocs.io/en/latest/user/install/)
 
 ### Usage
-In terminal, run the python script ("finalPRRSVclass.py") with a query multiple sequence alignment that needed to be assigned into variants using the following command.
+In terminal, run the python script ("finalPRRSVclass.py") with a query multiple sequence alignment that needed to be assigned into variants using the following command.  This script automatically links to the most up-to-date version of the assignment algorithm stored on Github.
 
 ```bash
 usage: python3 finalPRRSVclass.py [-h] -s SEQALI -o OUT
@@ -158,4 +158,4 @@ options:
 The output file is similar to the report assigned by R.
 
 ## Agreement in predicted assignments made by R and Python Random Forests
-An analysis of the agreement between the R and Python assignment algorithms was performed with 18,987 sequences (May 22, 2024).  Agreement between the R and Python algorithms was 98.2%.  Agreement between the "true" variant ID and the predictions made by R and Python was 99.4% and 97.9%, respectively
+An analysis of the agreement between the R and Python assignment algorithms was performed with 18,987 sequences (May 22, 2024).  Agreement between the R and Python algorithms was 98.2%.  Agreement between the "true" variant ID and the predictions made by R and Python was 99.4% and 97.9%, respectively.

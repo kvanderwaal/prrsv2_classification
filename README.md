@@ -159,3 +159,6 @@ The output file is similar to the report assigned by R.
 
 ## Agreement in predicted assignments made by R and Python Random Forests
 An analysis of the agreement between the R and Python assignment algorithms was performed with 18,987 sequences (May 22, 2024).  Agreement between the R and Python algorithms was 98.2%.  Agreement between the "true" variant ID and the predictions made by R and Python was 99.4% and 97.9%, respectively.
+
+## Citation
+VanderWaal, Kimberly, Nakarin Pamornchainvakul, Mariana Kikuti, Daniel Linhares, Giovani Trevisan, Jianqiang Zhang, Tavis K Anderson, Michael Zeller, Stephanie Rossow, Derald J Holtkamp, Dennis N Makau, Cesar A Corzo, and Igor A.D. Paploski. "Phylogenetic-Based Methods for Fine-Scale Classification of Prrsv-2 Orf5 Sequences: A Comparison of Their Robustness and Reproducibility." bioRxiv  (2024): 2024.05.13.593920. https://dx.doi.org/10.1101/2024.05.13.593920.

@@ -141,18 +141,21 @@ undetermined
     * [Numpy](https://numpy.org/install/)
     * [Biopython](https://biopython.org/)
     * [SKOPS](https://github.com/skops-dev/skops)
+    * [Requests](https://requests.readthedocs.io/en/latest/user/install/)
 
 ### Usage
-In terminal, run the python script ("finalPRRSVclass.py") together with a pre-trained random forest model ("randomCV10RF.skops") and a query multiple sequence alignment that needed to be assigned into variants using the following command.
+In terminal, run the python script ("finalPRRSVclass.py") with a query multiple sequence alignment that needed to be assigned into variants using the following command.
 
 ```bash
-usage: python3 finalPRRSVclass.py [-h] -s SEQALI -m randomCV10RF.skops -o OUT
+usage: python3 finalPRRSVclass.py [-h] -s SEQALI -o OUT
 
 options:
   -h, --help    Show this help message and exit
   -s, --seqali  PRRSV-2 multiple sequence alignment with length of 603 nt in FASTA format
-  -m, --model   Pre-trained random forest model
   -o, --out     Name or full path of classification report in .csv format
 ```
 
 The output file is similar to the report assigned by R.
+
+## Agreement in predicted assignments made by R and Python Random Forests
+An analysis of the agreement between the R and Python assignment algorithms was performed with 18,987 sequences (May 22, 2024).  Agreement between the R and Python algorithms was 98.2%.  Agreement between the "true" variant ID and the predictions made by R and Python was 99.4% and 97.9%, respectively

@@ -136,9 +136,9 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
     nam_to_exclude <- al.new[["nam"]][seq_to_exclude]
     al.new.nam <- al.new$nam[!(al.new$nam %in% nam_to_exclude)]
     al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
-    al.new.sub <- as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
+    al.new.sub <- seqinr::as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
     
-    al.new <- as.alignment(nb=length(c(al.new.nam,aligned_trim_seq[["nam"]])),
+    al.new <- seqinr::as.alignment(nb=length(c(al.new.nam,aligned_trim_seq[["nam"]])),
                              nam=c(al.new.nam,aligned_trim_seq[["nam"]]),
                              seq=c(al.new.seq,aligned_trim_seq$seq))  # Add the aligned sequences to the original al.new
     
@@ -147,7 +147,7 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
     nam_to_exclude <- al.new[["nam"]][seq_to_exclude]
     al.new.nam <- al.new$nam[!(al.new$nam %in% nam_to_exclude)]
     al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
-    al.new <- as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
+    al.new <- seqinr::as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
     }
   
   

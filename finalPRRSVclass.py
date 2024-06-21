@@ -14,7 +14,11 @@ if __name__ == "__main__":
 
     url0 = 'https://github.com/kvanderwaal/prrsv2_classification/raw/main/randomCV10RF.skops?download='
     url1 = BytesIO(requests.get(url0).content)
-    model = sio.load(url1, trusted=True)
+    model1 = sio.load(url1, trusted=True)
+
+    url2 = 'https://github.com/kvanderwaal/prrsv2_classification/raw/main/sublinRF.skops?download='
+    url3 = BytesIO(requests.get(url2).content)
+    model2 = sio.load(url3, trusted=True)
 
     with open(args.seqali) as fp:
       records = [{'name': str(record.description),
@@ -45,9 +49,9 @@ if __name__ == "__main__":
     dum_d = pd.get_dummies(d, columns=col)
     dum_d = dum_d.iloc[:-4]
 
-    base_feat = dum_d.loc[:, dum_d.columns.isin(model.feature_names_in_)]
-    base_pred = model.predict_proba(base_feat)
-    col = (model.classes_).tolist()
+    base_feat = dum_d.loc[:, dum_d.columns.isin(model1.feature_names_in_)]
+    base_pred = model1.predict_proba(base_feat)
+    col = (model1.classes_).tolist()
     ind = list(base_feat.index)
     base_pred = pd.DataFrame(base_pred, columns=col, index=ind)
     base_pred['var'] = base_pred.apply(lambda x: list(zip(x.index[x > 0], x[x > 0])), axis=1)
@@ -70,8 +74,54 @@ if __name__ == "__main__":
                                           'base_var_3': 'assign.3'})
 
     base_prob['assign.final'] = np.where(base_prob["prob.top"] < 0.25, "undetermined", base_prob["assign.top"])
+    base_prob['assign.2'] = np.where(base_prob["prob.2"] == 0, 'NA', base_prob['assign.2'])
+    base_prob['assign.3'] = np.where(base_prob["prob.3"] == 0, 'NA', base_prob['assign.3'])
+    base_prob = base_prob.fillna('NA')
 
-    final = base_prob[['strain', 'assign.final', 'assign.top', 'prob.top', 'assign.2', 'prob.2', 'assign.3', 'prob.3']]
+    if base_prob['assign.final'].str.contains('undetermined').any():
+        dum_d2 = dum_d.loc[dum_d.index.isin(base_prob['strain'].loc[base_prob['assign.final'] == "undetermined"])]
+        base_feat_lin = dum_d2.loc[:, dum_d2.columns.isin(model2.feature_names_in_)]
+        base_pred_lin = model2.predict_proba(base_feat_lin)
+        col = (model2.classes_).tolist()
+        ind = list(base_feat_lin.index)
+        base_pred_lin = pd.DataFrame(base_pred_lin, columns=col, index=ind)
+        base_pred_lin['lin'] = base_pred_lin.apply(lambda x: list(zip(x.index[x > 0], x[x > 0])), axis=1)
+        base_pred_lin['id'] = base_pred_lin.index
+        lstsort = [(row.id, sorted(row.lin, key=lambda x: (-x[1], x[0]))) for row in base_pred_lin.itertuples()]
+        base_prob_lin = pd.DataFrame(lstsort, columns=['id', 'base_lin_prob'])
+
+        new_df = base_prob_lin.explode('base_lin_prob').reset_index(drop=True)
+        new_df[['base_lin', 'base_prob_lin']] = pd.DataFrame(new_df['base_lin_prob'].tolist(), index=new_df.index)
+        new_df = new_df[['id', 'base_lin', 'base_prob_lin']]
+        new_df['idx'] = new_df.groupby('id').cumcount() + 1
+        new_df = new_df.pivot_table(index=['id'], columns='idx', values=['base_lin', 'base_prob_lin'], aggfunc='first')
+        new_df = new_df.sort_index(axis=1, level=1)
+        new_df.columns = [f'{x}_{y}' for x, y in new_df.columns]
+        new_df = new_df.reset_index()
+        base_prob_lin = new_df.iloc[:, : 7]
+
+        base_prob_lin = base_prob_lin.rename(columns={'id': 'strain', 'base_prob_lin_1': 'prob.top', 'base_lin_1': 'assign.top',
+                                                      'base_prob_lin_2': 'prob.2', 'base_lin_2': 'assign.2',
+                                                      'base_prob_lin_3': 'prob.3',
+                                                      'base_lin_3': 'assign.3'})
+
+        base_prob_lin['assign.final'] = np.where(base_prob_lin["prob.top"] < 0.25, "undetermined", base_prob_lin["assign.top"])
+        base_prob_lin['assign.2'] = np.where(base_prob_lin["prob.2"] == 0, 'NA', base_prob_lin['assign.2'])
+        base_prob_lin['assign.3'] = np.where(base_prob_lin["prob.3"] == 0, 'NA', base_prob_lin['assign.3'])
+        base_prob_lin = base_prob_lin.fillna('NA')
+        base_prob_lin['assign.final2'] = np.where(base_prob_lin["assign.final"] == "undetermined", "undetermined", base_prob_lin["assign.final"] + "-unclassified")
+
+        base_prob_lin_merge = base_prob_lin[['strain', 'assign.final2']]
+        base_prob_lin_merge = base_prob_lin_merge.rename(columns={'assign.final2': 'assign.final'})
+
+        base_prob_all = pd.merge(base_prob, base_prob_lin_merge, on=['strain'], how='outer')
+        base_prob_all['assign.final'] = base_prob_all['assign.final_y']
+        base_prob_all.loc[base_prob_all['assign.final'].isna(), 'assign.final'] = base_prob_all['assign.final_x']
+        base_prob_all = base_prob_all.drop(['assign.final_x', 'assign.final_y'], axis=1)
+    else:
+        base_prob_all = base_prob
+
+    final = base_prob_all[['strain', 'assign.final', 'assign.top', 'prob.top', 'assign.2', 'prob.2', 'assign.3', 'prob.3']]
 
     outfile = args.out
 

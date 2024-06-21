@@ -445,9 +445,12 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
   
   al.und <- subset.align(al.new,al.new$nam[al.new$nam %in% p.out$SequenceName[p.out$assign.final=="undetermined"]])
   
-  lin.pred <- make.predict.lin(al.new=al.und)
-  lin.pred$assign.final2 <- ifelse(lin.pred$assign.final=="undetermined","undetermined",paste(lin.pred$assign.final,"unclassified",sep="-"))
-  p.out$assign.final[p.out$SequenceName %in% lin.pred$SequenceName] <- lin.pred$assign.final2[match(p.out$SequenceName[p.out$SequenceName %in% lin.pred$SequenceName],lin.pred$SequenceName )]
+  if(al.und$nb >0 ){
+    lin.pred <- make.predict.lin(al.new=al.und)
+    lin.pred$assign.final2 <- ifelse(lin.pred$assign.final=="undetermined","undetermined",paste(lin.pred$assign.final,"unclassified",sep="-"))
+    p.out$assign.final[p.out$SequenceName %in% lin.pred$SequenceName] <- lin.pred$assign.final2[match(p.out$SequenceName[p.out$SequenceName %in% lin.pred$SequenceName],lin.pred$SequenceName )]
+  }
+  
   
   
   return(p.out[,1:6])

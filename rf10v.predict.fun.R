@@ -16,7 +16,7 @@ load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.Rd
 subset.align <- function(align,n){
   align.temp.nam <- align$nam[align$nam %in% n]
   align.temp.seq <- align$seq[align$nam %in% n]
-  align.sub <- as.alignment(nb=length(align.temp.nam),nam=align.temp.nam,seq=align.temp.seq)
+  align.sub <- seqinr::as.alignment(nb=length(align.temp.nam),nam=align.temp.nam,seq=align.temp.seq)
   return(align.sub)
 }
 

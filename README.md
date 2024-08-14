@@ -114,7 +114,8 @@ head(out)
 #prob.2:  the probability of the sequence belonging to the second most likely lineage
 #assign.3:  the lineage with the second highest probability
 #prob.3:  the probability of the sequence belonging to the third most likely lineage
-#assign.final:  This is the final assignemtn with <.25 called undetermined
+#assign.final:  This is the final assignment, with probabilities with <.25 or with prob.top <2x higher than prob.2 called unclassified (with their lineage name)
+#num.gaps.amb:  The number of nucleotide positions that are gaps or ambiguities.
 ```
 
 The output file contains 8 columns. The “assign.final” column is the

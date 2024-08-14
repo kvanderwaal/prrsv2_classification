@@ -7,6 +7,7 @@ library(adegenet)
 library(caret)
 library(randomForest)
 library(Biostrings)
+library(stringr)
 
 #load("model.rf10v.new.lin.Rdata")
 load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.rf10v.new.lin.11.2023.Rdata"))
@@ -157,8 +158,8 @@ make.predict.lin <- function(m=xg_lin,al.new=al.new)    {
     al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
     al.new <- seqinr::as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
   }
-  
-  
+  amb <-unlist(lapply(al.new$seq,str_count,pattern="-"))
+  name.list <- al.new$nam
   #add dummy dable to al.new so that it ahas same column structure
   align.dummy.new <- seqinr::as.alignment(nb=(al.new$nb)+nrow(dummy.seqs),
                                           nam=c(paste("dummy",1:5),al.new$nam),
@@ -195,6 +196,7 @@ make.predict.lin <- function(m=xg_lin,al.new=al.new)    {
   lapply(d.rf[,1:ncol(d.rf)],levels)
   
   d.rf <- d.rf[-(1:5),]#remove dummies
+ 
   #convert NA to mode#convert NA calc_modeto mode
   #d.rf[,1:ncol(d.rf)] <- sapply(d.rf[,1:ncol(d.rf)],na.to.mode) 
   
@@ -257,9 +259,13 @@ make.predict.lin <- function(m=xg_lin,al.new=al.new)    {
   )
   p.out$assign.2 <- ifelse(p.out$prob.2==0,NA,p.out$assign.2)
   p.out$assign.3 <- ifelse(p.out$prob.3==0,NA,p.out$assign.3)
-  p.out$assign.final <- ifelse(p.out$prob.top<.25,"undetermined",as.character(p.out$assign.top))
   
-  return(p.out[,1:6])
+  p.out$assign.final <- ifelse(p.out$prob.top>=.25 & p.out$prob.top/p.out$prob.2>=2,as.character(p.out$assign.top),"undetermined")
+ 
+  p.out$num.gaps.amb <- amb
+  p.out$SequenceName <- name.list
+  
+  return(p.out[,c(1:6,9)])
 }
 
 
@@ -341,8 +347,8 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
     al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
     al.new <- seqinr::as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
     }
-  
-  
+  amb <-unlist(lapply(al.new$seq,str_count,pattern="-"))
+  name.list <- al.new$nam
   #add dummy dable to al.new so that it ahas same column structure
   align.dummy.new <- seqinr::as.alignment(nb=(al.new$nb)+nrow(dummy.seqs),
                                           nam=c(paste("dummy",1:5),al.new$nam),
@@ -379,6 +385,7 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
   lapply(d.rf[,1:ncol(d.rf)],levels)
   
   d.rf <- d.rf[-(1:5),]#remove dummies
+  
   #convert NA to mode#convert NA calc_modeto mode
   #d.rf[,1:ncol(d.rf)] <- sapply(d.rf[,1:ncol(d.rf)],na.to.mode) 
   
@@ -442,8 +449,12 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
   p.out$assign.2 <- ifelse(p.out$prob.2==0,NA,p.out$assign.2)
   p.out$assign.3 <- ifelse(p.out$prob.3==0,NA,p.out$assign.3)
   p.out$assign.final <- ifelse(p.out$prob.top<.25,"undetermined",as.character(p.out$assign.top))
+  p.out$ratios <- p.out$prob.top/p.out$prob.2
   
-  al.und <- subset.align(al.new,al.new$nam[al.new$nam %in% p.out$SequenceName[p.out$assign.final=="undetermined"]])
+  p.out$num.gaps.amb <- amb
+  
+  p.out$SequenceName <- name.list
+  al.und <- subset.align(al.new,al.new$nam[al.new$nam %in% p.out$SequenceName[p.out$assign.final=="undetermined" | p.out$ratios<2]])
   
   if(al.und$nb >0 ){
     lin.pred <- make.predict.lin(al.new=al.und)
@@ -452,6 +463,5 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
   }
   
   
-  
-  return(p.out[,1:6])
+  return(p.out[,c(1:6,10)])
 }

@@ -77,7 +77,7 @@ load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.Rd
 
 #note, if you would like to predict lineages/sub-lineages instead of variants, you can load this model instead.
 #lineages/sub-lineages reflect Paploski et al. 2021 (Vaccines: https://dx.doi.org/10.3201/eid2208.160496) and Yim-im et al. 2023 (Microbiology Spectrum: https://dx.doi.org/10.1128/spectrum.02916-23)
-#load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.rf10v.new.lin.11.2023.Rdata"))
+#load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.lineage.rf.Rdata"))
 
 
 #load alignment file (should be in your working directory). 

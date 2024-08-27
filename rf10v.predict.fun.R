@@ -10,7 +10,7 @@ library(Biostrings)
 library(stringr)
 
 #load("model.rf10v.new.lin.Rdata")
-load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.rf10v.new.lin.11.2023.Rdata"))
+load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.lineage.rf.Rdata"))
 xg_lin <- xg_fit
 load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.Rdata"))
 

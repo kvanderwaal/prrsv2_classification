@@ -2,7 +2,7 @@ Genetic classification PRRSV-2 sequences in R and Python
 ================
 Kimberly VanderWaal, PhD, & Nakarin Pamornchainavakul, DVM, PhD
 
-## Background
+## Background 
 
 Disease management and epidemiological investigations of Porcine
 reproductive and respiratory syndrome virus-type 2 (PRRSV-2) often

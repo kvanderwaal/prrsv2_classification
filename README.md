@@ -2,7 +2,7 @@ Genetic classification PRRSV-2 sequences in R and Python
 ================
 Kimberly VanderWaal, PhD, & Nakarin Pamornchainavakul, DVM, PhD
 
-## Background 
+## Background
 
 Disease management and epidemiological investigations of Porcine
 reproductive and respiratory syndrome virus-type 2 (PRRSV-2) often
@@ -77,7 +77,7 @@ load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.Rd
 
 #note, if you would like to predict lineages/sub-lineages instead of variants, you can load this model instead.
 #lineages/sub-lineages reflect Paploski et al. 2021 (Vaccines: https://dx.doi.org/10.3201/eid2208.160496) and Yim-im et al. 2023 (Microbiology Spectrum: https://dx.doi.org/10.1128/spectrum.02916-23)
-#load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.lineage.rf.Rdata"))
+#load(url("https://github.com/kvanderwaal/prrsv2_classification/raw/main/model.rf10v.new.lin.11.2023.Rdata"))
 
 
 #load alignment file (should be in your working directory). 
@@ -92,46 +92,33 @@ write.csv(out,file="out.csv")
 
 #view the assignments
 head(out)
-#>     strain      assign.top prob.top assign.2 prob.2        assign.3 prob.3
-#> ex1    ex1 1A-unclassified    0.844    1A.19  0.078           1A.40  0.014
-#> ex2    ex2           1A.14    1.000     <NA>  0.000            <NA>  0.000
-#> ex3    ex3 1A-unclassified    1.000     <NA>  0.000            <NA>  0.000
-#> ex4    ex4            5A.1    0.994    1H.29  0.002 1H-unclassified  0.002
-#> ex5    ex5            1A.5    0.996     1A.6  0.002 1A-unclassified  0.002
-#> ex6    ex6            1H.4    0.992     1H.7  0.002            1H.3  0.002
-#>        assign.final
-#> ex1 1A-unclassified
-#> ex2           1A.14
-#> ex3 1A-unclassified
-#> ex4            5A.1
-#> ex5            1A.5
-#> ex6            1H.4
-
-#columns:
-#assign.top:  the lineage with highest probability
-#prob.top:  The probability of the sequence belonging to the top lineage
-#assign.2:  the lineage with the second highest probability
-#prob.2:  the probability of the sequence belonging to the second most likely lineage
-#assign.3:  the lineage with the second highest probability
-#prob.3:  the probability of the sequence belonging to the third most likely lineage
-#assign.final:  This is the final assignment, with probabilities with <.25 or with prob.top <2x higher than prob.2 called unclassified (with their lineage name)
-#num.gaps.amb:  The number of nucleotide positions that are gaps or ambiguities.
+#>     SequenceName    assign.final      assign.top prob.top        assign.2
+#> ex1          ex1 1A-unclassified           1A.19    0.404 1A-unclassified
+#> ex2          ex2           1A.14           1A.14    0.998           1A.38
+#> ex3          ex3 1A-unclassified 1A-unclassified    0.942           1A.32
+#> ex4          ex4            5A.1            5A.1    0.982 5B-unclassified
+#> ex5          ex5            1A.5            1A.5    1.000            <NA>
+#> ex6          ex6            1H.4            1H.4    0.986           1H.17
+#>     prob.2 num.gaps.amb
+#> ex1  0.316            0
+#> ex2  0.002            0
+#> ex3  0.046            0
+#> ex4  0.006            0
+#> ex5  0.000            0
+#> ex6  0.004            0
 ```
 
 The output file contains 8 columns. The “assign.final” column is the
 assigned variant ID for each sequence.
 
 Col.1 (strain): This is ID of each sequence.  
-Col.2 (assign.top): the most probable variant to which the sequence
-belongs Col.3 (prob.top): The probability of the sequence belonging to
-the most probable (top) variant Col.4 (assign.2): The second-most
-probable variable to which the sequence belongs Col.5 (prob.2): The
-probability that the sequence belongs to the second-most probable
-variant Col.6 (assign.3): The third-most probable variable to which the
-sequence belongs Col.7 (prob.3): The probability that the sequence
-belongs to the third-most probable variant Col.8 (assign.final): This is
-the final assignment, Those with a prob.top of \<.25 are labeled
-undetermined
+Col.2 (assign.final): This is the final assignment, Those with a
+prob.top of \<.25 are labeled undetermined Col.3 (assign.top): the most
+probable variant to which the sequence belongs Col.4 (prob.top): The
+probability of the sequence belonging to the most probable (top) variant
+Col.5 (assign.2): The second-most probable variable to which the
+sequence belongs Col.6 (prob.2): The probability that the sequence
+belongs to the second-most probable variant
 
 ## Assigning sequences in Python
 ### Requirements

@@ -1,4 +1,4 @@
-"variant.id","lineage","seqs.since.2015","seqs.past.12-24.months","seqs.past.12.months","percent.12-24 months","percent.12 months","first.occurrence","last.detected","relative.occurrence","U.S.occurrence.trend","vaccine"
+"variant.id","lineage","seqs.since.2015","seqs.past.12-24.months","seqs.past.12.months","percent.12-24 months","percent.12 months","first.occurrence","last.detected","relative.occurrence","occurrence.trend","vaccine"
 "10.1","10",0,0,0,0,0,2010,2011,"","rare or extinct",""
 "1A.1","1A",23,0,0,0,0,2015,2018,"","rare or extinct",""
 "1A.12","1A",13,0,0,0,0,2017,2018,"","rare or extinct",""
@@ -78,7 +78,6 @@
 "1H.8","1H",44,0,0,0,0,2016,2021,"","rare or extinct",""
 "1I-unclassified","1I",0,0,0,0,0,2003,2005,"","",""
 "1I.1","1I",0,0,0,0,0,2003,2010,"","rare or extinct",""
-"1K-unclassified","1K",18,0,0,0,0,2015,2021,"","",""
 "1K.3","1K",5,0,0,0,0,2021,2021,"","rare or extinct",""
 "1L-unclassified","1L",20,0,0,0,0,2015,2022,"","",""
 "2-unclassified","2",1,0,0,0,0,2001,2015,"","",""

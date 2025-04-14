@@ -34,7 +34,7 @@ if __name__ == "__main__":
     d = d.replace('-', np.nan)
 
     for column in d.columns:
-        d[column].fillna(d[column].mode()[0], inplace=True)
+        d[column] = d[column].fillna(d[column].mode()[0])
 
     a = ['a']
     t = ['t']

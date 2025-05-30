@@ -157,7 +157,7 @@ if __name__ == "__main__":
                                           'base_prob_2': 'prob.2', 'base_var_2': 'assign.2', 'base_prob_3': 'prob.3',
                                           'base_var_3': 'assign.3'})
 
-    base_prob['assign.final'] = np.where(base_prob["prob.top"] < 0.25, "undetermined", base_prob["assign.top"])
+    base_prob['assign.final'] = np.where((base_prob["prob.top"] < 0.25) | (base_prob["prob.top"] < 2 * base_prob["prob.2"]), "undetermined", base_prob["assign.top"])
     base_prob['assign.2'] = np.where(base_prob["prob.2"] == 0, 'NA', base_prob['assign.2'])
     base_prob['assign.3'] = np.where(base_prob["prob.3"] == 0, 'NA', base_prob['assign.3'])
     base_prob = base_prob.fillna('NA')
@@ -189,7 +189,7 @@ if __name__ == "__main__":
                                                       'base_prob_lin_3': 'prob.3',
                                                       'base_lin_3': 'assign.3'})
 
-        base_prob_lin['assign.final'] = np.where(base_prob_lin["prob.top"] < 0.25, "undetermined", base_prob_lin["assign.top"])
+        base_prob_lin['assign.final'] = np.where((base_prob_lin["prob.top"] < 0.25) | (base_prob_lin["prob.top"] < 2 * base_prob_lin["prob.2"]), "undetermined", base_prob_lin["assign.top"])
         base_prob_lin['assign.2'] = np.where(base_prob_lin["prob.2"] == 0, 'NA', base_prob_lin['assign.2'])
         base_prob_lin['assign.3'] = np.where(base_prob_lin["prob.3"] == 0, 'NA', base_prob_lin['assign.3'])
         base_prob_lin = base_prob_lin.fillna('NA')

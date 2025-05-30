@@ -1,10 +1,61 @@
 import pandas as pd
 import numpy as np
-from Bio import SeqIO
+from Bio import SeqIO, Align
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 import skops.io as sio
 from io import BytesIO
 import requests
 import argparse
+
+# Reference sequence (603 nt, no gaps)
+REFERENCE = (
+    "atgttggggaaatgcttgaccgcgggctgttgctcgcaattgctttttttgtggtgtatcgtgccgttctgttttgttgcgctcgtcaacgccaacaacaacagcagctcccatttacagttgatttataacctgacgatatgtgagctgaatggcacagattggctaaataaaaaatttgattgggcagtggagacttttgtcatctttcctgtgttgactcacattgtctcctatggcgccctcaccaccagccatttccttgacacagtcggcctgatcactgtgtctaccgccggatattatcacgggcggtatgtcttgagtagcatttacgctgtctgtgccctggctgcgttgacttgcttcgtcattaggttagcaaaaaattgcatgtcctggcgctactcatgtaccagatataccaactttcttctggacaccaagggcaaactctatcgttggcggtcgcccgtcatcatagagaaagggggtaaagttgaggtcgaaggtcacctgatcgacctcaaaagagttgtgcttgatggttccgcggcaacccctgtaaccaaagtttcagcggaacaatggggtcgtccttag"
+)
+
+def align_to_reference(seq, reference):
+    """
+    Align a single sequence to the reference using global alignment.
+    The reference will not be modified (no gaps inserted), only the query sequence will get gaps or be trimmed.
+    """
+    aligner = Align.PairwiseAligner()
+    aligner.mode = 'global'
+    aligner.open_gap_score = -10
+    aligner.extend_gap_score = -0.5
+    aligner.match_score = 2
+    aligner.mismatch_score = -2
+
+    # Only allow gaps in the query, not in the reference
+    aligner.target_open_gap_score = -1e8
+    aligner.target_extend_gap_score = -1e8
+
+    # Run alignment
+    alignments = aligner.align(reference, seq)
+    best = alignments[0]
+    aligned_ref = best.aligned[0]
+    aligned_query = best.aligned[1]
+
+    # Build the gapped sequence for the query such that
+    # it matches the reference (603 nt, with gaps inserted as needed)
+    ref_idx = 0
+    query_idx = 0
+    result = []
+
+    for (ref_start, ref_end), (query_start, query_end) in zip(aligned_ref, aligned_query):
+        # Fill any gaps in the reference (should not be needed)
+        while ref_idx < ref_start:
+            result.append('-')
+            ref_idx += 1
+        # Insert aligned bases
+        while ref_idx < ref_end and query_idx < query_end:
+            result.append(seq[query_idx])
+            ref_idx += 1
+            query_idx += 1
+    # Fill any trailing gaps
+    while len(result) < len(reference):
+        result.append('-')
+    # If the sequence is longer than the reference, we cut it
+    return ''.join(result)[:len(reference)]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Estimating PRRSV-2 phylogenetic variant using random forest')
@@ -20,15 +71,48 @@ if __name__ == "__main__":
     url3 = BytesIO(requests.get(url2).content)
     model2 = sio.load(url3, trusted=True)
 
+    # Parse all sequences from the input FASTA
     with open(args.seqali) as fp:
-      records = [{'name': str(record.description),
-                  'sequence': str(record.seq)} for record in SeqIO.parse(fp,"fasta")]
+        records = [
+            {
+                'name': str(record.description),
+                'sequence': str(record.seq).lower().replace('\n', '').replace('\r', '')
+            }
+            for record in SeqIO.parse(fp, "fasta")
+        ]
 
-    d = pd.DataFrame.from_records(records)
+    # Separate sequences: those with ungapped length = 603 and those with != 603
+    seq_gapped = []
+    seq_to_align = []
+    for rec in records:
+        ungapped_len = len(rec['sequence'].replace("-", ""))
+        if ungapped_len == 603:
+            seq_gapped.append(rec)
+        else:
+            seq_to_align.append(rec)
+
+    # Align sequences that need it
+    aligned_records = []
+    for rec in seq_to_align:
+        aligned_seq = align_to_reference(rec['sequence'].replace("-", ""), REFERENCE)
+        aligned_records.append({'name': rec['name'], 'sequence': aligned_seq})
+
+    # For sequences already gapped but of correct length, check for length
+    for rec in seq_gapped:
+        # If length is not 603, pad or trim as needed
+        seq = rec['sequence']
+        if len(seq) < 603:
+            seq = seq.ljust(603, '-')
+        elif len(seq) > 603:
+            seq = seq[:603]
+        aligned_records.append({'name': rec['name'], 'sequence': seq})
+
+    # Now all entries in aligned_records have length 603 (with possible gaps)
+    d = pd.DataFrame.from_records(aligned_records)
     d['sequence'] = d['sequence'].apply(lambda x: x.lower())
     d = d.set_index('name')
     d = d['sequence'].apply(lambda x: pd.Series(list(x)))
-    d = d.rename(columns={x:y for x,y in zip(d.columns,range(1,len(d.columns)+1))})
+    d = d.rename(columns={x: y for x, y in zip(d.columns, range(1, len(d.columns) + 1))})
     d = d.add_prefix('p.')
     d[~d.isin(['a', 't', 'c', 'g', '-'])] = '-'
     d = d.replace('-', np.nan)
@@ -56,7 +140,7 @@ if __name__ == "__main__":
     base_pred = pd.DataFrame(base_pred, columns=col, index=ind)
     base_pred['var'] = base_pred.apply(lambda x: list(zip(x.index[x > 0], x[x > 0])), axis=1)
     base_pred['id'] = base_pred.index
-    lstsort = [(row.id, sorted(row.var,key=lambda x:(-x[1], x[0]))) for row in base_pred.itertuples()]
+    lstsort = [(row.id, sorted(row.var, key=lambda x: (-x[1], x[0]))) for row in base_pred.itertuples()]
     base_prob = pd.DataFrame(lstsort, columns=['id', 'base_var_prob'])
 
     new_df = base_prob.explode('base_var_prob').reset_index(drop=True)
@@ -67,7 +151,7 @@ if __name__ == "__main__":
     new_df = new_df.sort_index(axis=1, level=1)
     new_df.columns = [f'{x}_{y}' for x, y in new_df.columns]
     new_df = new_df.reset_index()
-    base_prob = new_df.iloc[:, : 7]
+    base_prob = new_df.iloc[:, :7]
 
     base_prob = base_prob.rename(columns={'id': 'strain', 'base_prob_1': 'prob.top', 'base_var_1': 'assign.top',
                                           'base_prob_2': 'prob.2', 'base_var_2': 'assign.2', 'base_prob_3': 'prob.3',
@@ -98,7 +182,7 @@ if __name__ == "__main__":
         new_df = new_df.sort_index(axis=1, level=1)
         new_df.columns = [f'{x}_{y}' for x, y in new_df.columns]
         new_df = new_df.reset_index()
-        base_prob_lin = new_df.iloc[:, : 7]
+        base_prob_lin = new_df.iloc[:, :7]
 
         base_prob_lin = base_prob_lin.rename(columns={'id': 'strain', 'base_prob_lin_1': 'prob.top', 'base_lin_1': 'assign.top',
                                                       'base_prob_lin_2': 'prob.2', 'base_lin_2': 'assign.2',
@@ -124,5 +208,4 @@ if __name__ == "__main__":
     final = base_prob_all[['strain', 'assign.final', 'assign.top', 'prob.top', 'assign.2', 'prob.2', 'assign.3', 'prob.3']]
 
     outfile = args.out
-
     final.to_csv(outfile, sep=',', header=True, index=False)

@@ -158,7 +158,7 @@ make.predict.lin <- function(m=xg_lin,al.new=al.new)    {
     al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
     al.new <- seqinr::as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
   }
-  amb <-unlist(lapply(al.new$seq,str_count,pattern="-"))
+  amb <-unlist(lapply(al.new$seq,str_count,pattern="[^ACGTacgt]"))
   name.list <- al.new$nam
   #add dummy dable to al.new so that it ahas same column structure
   align.dummy.new <- seqinr::as.alignment(nb=(al.new$nb)+nrow(dummy.seqs),

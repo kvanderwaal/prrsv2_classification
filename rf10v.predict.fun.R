@@ -120,6 +120,11 @@ make.predict.lin <- function(m=xg_lin,al.new=al.new)    {
           aligned_seq <- paste(unlist(strsplit(aligned_seq,""))[-insert.j], collapse = "")
         }
       }
+      if(nchar(aligned_seq)<603){#ensure that shorter sequences get gaps added at the end to make them 603 (gaps have already been added with alignment)
+        ch.to.add <- 603-nchar(aligned_seq)
+        ch.to.add <- paste(rep("-",ch.to.add),collapse="")
+        aligned_seq <- paste(aligned_seq,ch.to.add,sep="")
+      }
       
       # Convert the aligned sequence to a DNAStringSet object
       aligned_seq_set <- DNAStringSet(aligned_seq)
@@ -158,7 +163,7 @@ make.predict.lin <- function(m=xg_lin,al.new=al.new)    {
     al.new.seq <- al.new$seq[!(al.new$nam %in% nam_to_exclude)]
     al.new <- seqinr::as.alignment(nb=length(al.new.nam),nam=al.new.nam,seq=al.new.seq)
   }
-  amb <-unlist(lapply(al.new$seq,str_count,pattern="[^ACGTacgt]"))
+  amb <-unlist(lapply(al.new$seq,str_count,pattern="-"))
   name.list <- al.new$nam
   #add dummy dable to al.new so that it ahas same column structure
   align.dummy.new <- seqinr::as.alignment(nb=(al.new$nb)+nrow(dummy.seqs),
@@ -309,7 +314,11 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
           aligned_seq <- paste(unlist(strsplit(aligned_seq,""))[-insert.j], collapse = "")
         }
         }
-      
+      if(nchar(aligned_seq)<603){#ensure that shorter sequences get gaps added at the end to make them 603 (gaps have already been added with alignment)
+        ch.to.add <- 603-nchar(aligned_seq)
+        ch.to.add <- paste(rep("-",ch.to.add),collapse="")
+        aligned_seq <- paste(aligned_seq,ch.to.add,sep="")
+      }
       # Convert the aligned sequence to a DNAStringSet object
       aligned_seq_set <- DNAStringSet(aligned_seq)
       names(aligned_seq_set) <- al.new$nam[i]  # Set the name of the sequence

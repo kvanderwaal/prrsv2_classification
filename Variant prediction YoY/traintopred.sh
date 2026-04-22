@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set current timepoint manually at the top
-current_timepoint="2025_Mar"
+current_timepoint="2025_Dec"
 
 # Extract year and month abbreviation
 year=$(echo "$current_timepoint" | cut -d'_' -f1)

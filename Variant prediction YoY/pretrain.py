@@ -28,6 +28,7 @@ if __name__ == "__main__":
     #load new attr roll data
     df = pd.read_csv(args.data, sep=',', header=0)
     df2 = df[['strain', 'date', 'lineage', 'variant.id.07.ac.rolling']]
+    df2 = df2[df2["lineage"].str.startswith('1', na=False)]
     df2.columns = ['strain', 'date', 'lineage', 'variant']
     df2 = df2[df2["lineage"].str.startswith('1')] #keep only L1
     df2 = df2[df2['variant'].str.contains("unclassified") == False]
@@ -136,7 +137,7 @@ if __name__ == "__main__":
         dismat = calculator.get_distance(alignment)
         arr = np.array(dismat)
         arr[arr == 0] = 'nan'
-        gdist = np.nanmean(arr)
+        gdist = (np.nanmean(arr) if np.isfinite(np.array(arr, dtype=float)).any() else np.nan)
         return gdist
 
     dfg = df4[df4['strain'].map(len) > 1]
@@ -179,17 +180,25 @@ if __name__ == "__main__":
     nodedata['HVR2'] = nodedata['conAA'].str[57:61:1]  # doi: 10.1128/spectrum.02634-21
 
     #calculate distances to the recent year consensus sequences
-    def hamming_distance(string1, string2):
-        # Start with a distance of zero, and count up
-        distance = 0
-        # Loop over the indices of the string
-        L = len(string1)
-        for i in range(L):
-            # Add 1 to the distance if these two characters are not equal
-            if string1[i] != string2[i]:
-                distance += 1
-        # Return the final count of differences
-        return distance / L
+    def hamming_distance(seq1, seq2):
+        import numpy as np
+        if seq1 is None or seq2 is None:
+            return np.nan
+        s1 = str(seq1)
+        s2 = str(seq2)
+        if len(s1) == 0 or len(s2) == 0:
+            return np.nan
+        L = min(len(s1), len(s2))
+        if L == 0:
+            return np.nan
+        b1 = np.frombuffer(s1[:L].encode('ascii', errors='ignore'), dtype='S1')
+        b2 = np.frombuffer(s2[:L].encode('ascii', errors='ignore'), dtype='S1')
+        valid = (b1 != b'-') & (b2 != b'-') & (b1 != b'N') & (b2 != b'N')
+        n_valid = int(valid.sum())
+        if n_valid == 0:
+            return np.nan
+        mism = (b1[valid] != b2[valid]).mean()
+        return float(mism)
 
     lstdist = [(row.variant, hamming_distance(row.conAA, prevAA),
                 hamming_distance(row.ecto1, prevecto1),
@@ -304,9 +313,9 @@ if __name__ == "__main__":
 
         dfca_merged['CAGR_12'] = calculate_cagr(dfca_merged, last_col='nvarseqF12', previous_col='nvarseqall', years=1)
         def classify_cagr(cagr):
-            if cagr <= 20:
+            if cagr <= 15:
                 return "low"
-            elif cagr > 20:
+            elif cagr > 15:
                 return "high"
 
         dfca_merged['CAGR12_Class'] = dfca_merged['CAGR_12'].apply(classify_cagr)

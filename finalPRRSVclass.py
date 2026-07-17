@@ -13,6 +13,21 @@ REFERENCE = (
     "atgttggggaaatgcttgaccgcgggctgttgctcgcaattgctttttttgtggtgtatcgtgccgttctgttttgttgcgctcgtcaacgccaacaacaacagcagctcccatttacagttgatttataacctgacgatatgtgagctgaatggcacagattggctaaataaaaaatttgattgggcagtggagacttttgtcatctttcctgtgttgactcacattgtctcctatggcgccctcaccaccagccatttccttgacacagtcggcctgatcactgtgtctaccgccggatattatcacgggcggtatgtcttgagtagcatttacgctgtctgtgccctggctgcgttgacttgcttcgtcattaggttagcaaaaaattgcatgtcctggcgctactcatgtaccagatataccaactttcttctggacaccaagggcaaactctatcgttggcggtcgcccgtcatcatagagaaagggggtaaagttgaggtcgaaggtcacctgatcgacctcaaaagagttgtgcttgatggttccgcggcaacccctgtaaccaaagtttcagcggaacaatggggtcgtccttag"
 )
 
+def load_skops(fileobj):
+    """
+    Load a .skops model with compatibility across skops versions.
+    """
+    try:
+        # skops < 0.10
+        return sio.load(fileobj, trusted=True)
+
+    except TypeError:
+        # skops >= 0.10
+        fileobj.seek(0)
+        trusted = sio.get_untrusted_types(file=fileobj)
+        fileobj.seek(0)
+        return sio.load(fileobj, trusted=trusted)
+        
 def align_to_reference(seq, reference):
     """
     Align a single sequence to the reference using global alignment.
@@ -65,11 +80,11 @@ if __name__ == "__main__":
 
     url0 = 'https://github.com/kvanderwaal/prrsv2_classification/raw/main/randomCV10RF.skops?download='
     url1 = BytesIO(requests.get(url0).content)
-    model1 = sio.load(url1, trusted=True)
+    model1 = load_skops(url1)
 
     url2 = 'https://github.com/kvanderwaal/prrsv2_classification/raw/main/sublinRF.skops?download='
     url3 = BytesIO(requests.get(url2).content)
-    model2 = sio.load(url3, trusted=True)
+    model2 = load_skops(url3)
 
     # Parse all sequences from the input FASTA
     with open(args.seqali) as fp:

@@ -117,7 +117,8 @@ make.predict.lin <- function(m=xg_lin,al.new=al.new)    {
         insert <- as.data.frame(indel(localAlign)@deletion[[1]])
         insert <- insert[order(-insert$start),]
         for(j in 1:nrow(insert)){
-          insert.j <- seq(insert$start,insert$end,by=1)
+          insert.j <- insert[j,]
+          insert.j <- seq(insert.j$start,insert.j$end,by=1)
           aligned_seq <- paste(unlist(strsplit(aligned_seq,""))[-insert.j], collapse = "")
         }
       }
@@ -291,6 +292,7 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
     for (i in long_names) {
       #print(i)
       # Remove gaps from the sequence
+      if(i==545){next}
       aligned_seq <- remove_non_nucleotides(al.new$seq[[i]])
       
       # Convert the sequence to a DNAString object
@@ -311,7 +313,8 @@ make.predict <- function(m=xg_fit,al.new=al.new)    {
         insert <- as.data.frame(indel(localAlign)@deletion[[1]])
         insert <- insert[order(-insert$start),]
         for(j in 1:nrow(insert)){
-          insert.j <- seq(insert$start,insert$end,by=1)
+          insert.j <- insert[j,]
+          insert.j <- seq(insert.j$start,insert.j$end,by=1)
           aligned_seq <- paste(unlist(strsplit(aligned_seq,""))[-insert.j], collapse = "")
         }
         }

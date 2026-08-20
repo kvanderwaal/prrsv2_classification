@@ -7,7 +7,7 @@ library(adegenet)
 library(caret)
 library(randomForest)
 library(Biostrings)
-library(pwalign)
+#library(pwalign)
 library(stringr)
 
 #load("model.rf10v.new.lin.Rdata")
